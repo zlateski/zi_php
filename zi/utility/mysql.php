@@ -7,7 +7,7 @@ class mysql
     private static $db;
 
     private static $hostname  = 'localhost';
-    private static $database  = 'avail_cache' ;
+    private static $database  = 'omni' ;
     private static $username  = 'root' ;
     private static $password  = '' ;
     private static $keep_open = true       ;

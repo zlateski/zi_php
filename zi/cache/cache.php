@@ -47,7 +47,7 @@ class cache
         return self::$connected;
     }
 
-    public static function get_prefix($prefix)
+    public static function get_prefix()
     {
         return self::$mmc->getOption(Memcached::OPT_PREFIX_KEY);
     }
@@ -75,12 +75,11 @@ class cache
 
     public static function get()
     {
-        $args = func_get_args();
-        $keys = array_pop($args);
+        $args   = func_get_args();
+        $keys   = array_pop($args);
         $prefix = implode('/', $args);
 
         self::connect();
-        self::set_prefix($prefix);
 
         if ( is_array( $keys ) )
         {
@@ -88,8 +87,20 @@ class cache
         }
         else
         {
-            return self::$mmc->get( $keys );
+            return self::$mmc->get( $prefix . $keys );
         }
+    }
+
+    public static function erase()
+    {
+        $args = func_get_args();
+        $keys = array_pop($args);
+        $prefix = implode('/', $args);
+
+        self::connect();
+        self::set_prefix($prefix);
+
+        return self::$mmc->delete( $prefix . $keys );
     }
 
     public static function set()
@@ -110,20 +121,25 @@ class cache
             $val = $key_vals;
             $key = array_pop($args);
             $prefix = implode('/', $args);
-            self::set_prefix($prefix);
-            return self::$mmc->set( $key, $val );
+            return self::$mmc->set( $prefix . $key, $val );
         }
+    }
+
+    public static function flush()
+    {
+        self::connect();
+        self::$mmc->flush();
     }
 }
 
 
-var_dump(cache::set('aleks', 2));
-var_dump(cache::get_prefix());
-var_dump(cache::get('aleks'));
-var_dump(cache::get_prefix());
-var_dump(cache::set('pera', 'aleks', 3));
-var_dump(cache::get_prefix());
-var_dump(cache::get('pera', 'aleks'));
-var_dump(cache::get_prefix());
-var_dump(cache::get('aleks'));
-var_dump(cache::get_prefix());
+// var_dump(cache::set('aleks', 2));
+// var_dump(cache::get_prefix());
+// var_dump(cache::get('aleks'));
+// var_dump(cache::get_prefix());
+// var_dump(cache::set('pera', 'aleks', 3));
+// var_dump(cache::get_prefix());
+// var_dump(cache::get('pera', 'aleks'));
+// var_dump(cache::get_prefix());
+// var_dump(cache::get('aleks'));
+// var_dump(cache::get_prefix());
