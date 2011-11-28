@@ -23,7 +23,7 @@ include_once '../cache/cache.php';
 
 class assoc
 {
-    //const PREFIX = 'assocs';
+    const PREFIX = 'assocs';
 
     private static $all_data = array();
 
@@ -75,17 +75,17 @@ class assoc
 
     private function get_from_cache( $name )
     {
-        return cache::get( $this->iid1, $this->iid2, $name );
+        return cache::get( self::PREFIX, $this->iid1, $this->iid2, $name );
     }
 
     private function store_to_cache( $name, $value )
     {
-        return cache::set( $this->iid1, $this->iid2, $name, $value );
+        return cache::set( self::PREFIX, $this->iid1, $this->iid2, $name, $value );
     }
 
     private function remove_from_cache( $name )
     {
-        return cache::erase( $this->iid1, $this->iid2, $name );
+        return cache::erase( self::PREFIX, $this->iid1, $this->iid2, $name );
     }
 
     private function get( $name )
@@ -196,13 +196,44 @@ class assoc
         return $this;
     }
 
+    public static function get_all_pairs($id1)
+    {
+        $res = array();
+        $q = mysql::queryf( 'SELECT id2 FROM assoc_properties ' .
+                            'WHERE id1 = %d GROUP BY id2', $id1 );
+
+        while ( $r = mysql_fetch_object( $q ) )
+        {
+            $res []= $r->id2;
+        }
+
+        return $res;
+    }
+
+    public static function erase($id1, $id2)
+    {
+
+        $q = mysql::queryf( 'SELECT name FROM assoc_properties ' .
+                            'WHERE id1 = %d AND id2 = %d', $id1, $id2 );
+
+        while ( $r = mysql_fetch_object( $q ) )
+        {
+            cache::erase( self::PREFIX, $id1, $id2, $r->name );
+        }
+
+        return mysql::execf( 'DELETE FROM assoc_properties ' .
+                             'WHERE id1 = %d AND id2 = %d', $id1, $id2 );
+    }
+
 }
 
-var_dump( cache::flush() );
+//var_dump( cache::flush() );
 
 //return;
 
-$u = new assoc( 1, 2 );
+//assoc::erase(1,2);
+
+$u = new assoc( 1, 3 );
 
 //$u->z = 1234;
 
@@ -215,6 +246,8 @@ var_dump($u->qaa);
 var_dump($u->something);
 var_dump($u->s2);
 
+
+var_dump(assoc::get_all_pairs(1));
 
 //echo ( $u->z + $u->z ) . "\n";
 
